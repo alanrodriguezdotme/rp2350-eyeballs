@@ -1,0 +1,79 @@
+/*****************************************************************************
+* | File      	:   AMOLED_1in8.h
+* | Author      :   Waveshare Team
+* | Function    :   AMOLED Interface Functions
+* | Info        :
+*----------------
+* |	This version:   V1.0
+* | Date        :   2025-03-20
+* | Info        :   
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documnetation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of theex Software, and to permit persons to  whom the Software is
+# furished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS OR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+******************************************************************************/
+#ifndef _AMOLED_1IN8_H_
+#define _AMOLED_1IN8_H_
+
+#include "DEV_Config.h"
+#include "qspi_pio.h"
+
+#define AMOLED_1IN8_WIDTH 368
+#define AMOLED_1IN8_HEIGHT 448
+
+#define HORIZONTAL 0
+#define VERTICAL   1
+
+typedef struct{
+    UWORD WIDTH;
+    UWORD HEIGHT;
+    UBYTE SCAN_DIR;
+}AMOLED_1IN8_ATTRIBUTES;
+extern AMOLED_1IN8_ATTRIBUTES AMOLED_1IN8;
+
+void AMOLED_1IN8_Init();
+void AMOLED_1IN8_SetBrightness(uint8_t brightness);
+void AMOLED_1IN8_SetMemoryAccessControl(uint8_t madctl);
+void AMOLED_1IN8_SetWindows(uint32_t Xstart, uint32_t Ystart, uint32_t Xend, uint32_t Yend);
+void AMOLED_1IN8_Display(UWORD *Image);
+void AMOLED_1IN8_DisplayWindows(uint32_t Xstart, uint32_t Ystart, uint32_t Xend, uint32_t Yend, UWORD *Image);
+// Like AMOLED_1IN8_DisplayWindows(), but Image is a *tightly packed* buffer
+// sized exactly (Xend-Xstart)x(Yend-Ystart) (no full-panel-width stride),
+// sent as a single DMA transfer instead of DisplayWindows()'s per-row loop.
+// DisplayWindows() has proven intermittently unreliable on this hardware
+// (works for a while, then silently stops updating the panel) - this is a
+// smaller, more reliable alternative for a sub-window blit when you don't
+// have (or want) a full-panel-sized buffer. See doom/docs/DECISIONS.md.
+void AMOLED_1IN8_DisplayWindowPacked(uint32_t Xstart, uint32_t Ystart, uint32_t Xend, uint32_t Yend, UWORD *Image);
+// Start one packed transfer and return while DMA feeds the panel. The caller
+// must keep Image unchanged and call DisplayWindowPackedWait() before starting
+// another transfer. The pair holds the display mutex and CS transaction across
+// the asynchronous interval, so existing synchronous/bootlog callers remain
+// serialized safely.
+void AMOLED_1IN8_DisplayWindowPackedStart(uint32_t Xstart, uint32_t Ystart,
+                                          uint32_t Xend, uint32_t Yend,
+                                          const UWORD *Image);
+bool AMOLED_1IN8_DisplayWindowPackedWait(void);
+void AMOLED_1IN8_DisplayStreamBegin(uint32_t Xstart, uint32_t Ystart, uint32_t Xend, uint32_t Yend);
+void AMOLED_1IN8_DisplayStreamWrite(const void *data, uint32_t byte_count);
+void AMOLED_1IN8_DisplayStreamWriteAsync(const void *data, uint32_t byte_count);
+void AMOLED_1IN8_DisplayStreamWait(void);
+void AMOLED_1IN8_DisplayStreamEnd(void);
+uint32_t AMOLED_1IN8_GetDmaTimeoutCount(void);
+void AMOLED_1IN8_Clear(UWORD Color);
+
+#endif // !_AMOLED_1IN8_H_

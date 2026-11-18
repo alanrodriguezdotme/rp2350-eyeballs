@@ -1,0 +1,5 @@
+add_executable(eyetest main.c)
+target_link_libraries(eyetest eye_screen)
+pico_enable_stdio_usb(eyetest 1)
+pico_enable_stdio_uart(eyetest 0)
+pico_add_extra_outputs(eyetest)

@@ -1,0 +1,5 @@
+add_executable(pendant main.c)
+target_link_libraries(pendant eye_screen pico_rand)
+pico_enable_stdio_usb(pendant 1)
+pico_enable_stdio_uart(pendant 0)
+pico_add_extra_outputs(pendant)

@@ -1,0 +1,5 @@
+add_executable(bringup main.c)
+target_link_libraries(bringup board pico_stdlib)
+pico_enable_stdio_usb(bringup 1)
+pico_enable_stdio_uart(bringup 0)
+pico_add_extra_outputs(bringup)
